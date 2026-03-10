@@ -69,3 +69,11 @@ func (a *applicationDependencies) badRequestResponse(w http.ResponseWriter,
 
 	a.errorResponseJSON(w, r, http.StatusBadRequest, err.Error())
 }
+
+// send an error response if rate limit exceeded (429 - Too Many Requests)
+func (a *applicationDependencies) rateLimitExceededResponse(w http.ResponseWriter,
+	r *http.Request) {
+
+	message := "rate limit exceeded"
+	a.errorResponseJSON(w, r, http.StatusTooManyRequests, message)
+}

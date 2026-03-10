@@ -27,7 +27,8 @@ func (a *applicationDependencies) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/v1/patients/:patient_no", a.updatePatientHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/patients/:patient_no", a.updatePatientHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/patients/:patient_no", a.deletePatientHandler)
-	
 
-	return a.recoverPanic(router)
+	// Request sent first to recoverPanic() then sent to rateLimit()
+	// finally it is sent to the router
+	return a.recoverPanic(a.rateLimit(router))
 }
