@@ -11,6 +11,11 @@ include .envrc
 run/api:
 	go run ./cmd/api -db-dsn='$(MEDICAL_DB_DSN)'
 
+## run/api-no-limit: Start the API server without rate limiting
+.PHONY: run/api-no-limit
+run/api-no-limit:
+	go run ./cmd/api -db-dsn='$(MEDICAL_DB_DSN)' -limiter-enabled=false
+
 # ==================================================================================== #
 # DATABASE
 # ==================================================================================== #
