@@ -1,4 +1,4 @@
-module github.com/jennxsierra/pagination-sorting
+module github.com/jennxsierra/rate-limiting-shutdown
 
 go 1.25.6
 

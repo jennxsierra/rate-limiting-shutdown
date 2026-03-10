@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jennxsierra/pagination-sorting/internal/validator"
+	"github.com/jennxsierra/rate-limiting-shutdown/internal/validator"
 )
 
 // create an envelope type

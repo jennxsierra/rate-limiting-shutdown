@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jennxsierra/pagination-sorting/internal/data"
-	"github.com/jennxsierra/pagination-sorting/internal/validator"
+	"github.com/jennxsierra/rate-limiting-shutdown/internal/data"
+	"github.com/jennxsierra/rate-limiting-shutdown/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 

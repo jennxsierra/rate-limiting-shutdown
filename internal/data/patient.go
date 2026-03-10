@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jennxsierra/pagination-sorting/internal/validator"
+	"github.com/jennxsierra/rate-limiting-shutdown/internal/validator"
 )
 
 type Patient struct {

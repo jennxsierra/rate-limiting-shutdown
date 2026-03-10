@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jennxsierra/pagination-sorting/internal/data"
+	"github.com/jennxsierra/rate-limiting-shutdown/internal/data"
 	_ "github.com/lib/pq"
 )
 
