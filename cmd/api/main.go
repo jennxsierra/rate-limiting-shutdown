@@ -1,0 +1,98 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"flag"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/jennxsierra/pagination-sorting/internal/data"
+	_ "github.com/lib/pq"
+)
+
+const appVersion = "1.0.0"
+
+type serverConfig struct {
+	port        int
+	environment string
+	db          struct {
+		dsn string
+	}
+}
+
+type applicationDependencies struct {
+	config serverConfig
+	logger *slog.Logger
+	models data.Models
+}
+
+func main() {
+	var settings serverConfig
+
+	flag.IntVar(&settings.port, "port", 4000, "Server port")
+	flag.StringVar(&settings.environment, "env", "development",
+		"Environment(development|staging|production)")
+	// read in the dsn
+	flag.StringVar(&settings.db.dsn, "db-dsn", "", "PostgreSQL DSN")
+
+	flag.Parse()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// the call to openDB() sets up our connection pool
+	db, err := openDB(settings)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	// release the database resources before exiting
+	defer db.Close()
+
+	logger.Info("database connection pool established")
+	appInstance := &applicationDependencies{
+		config: settings,
+		logger: logger,
+		models: data.NewModels(db),
+	}
+
+	apiServer := &http.Server{
+		Addr:         fmt.Sprintf(":%d", settings.port),
+		Handler:      appInstance.routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+
+	logger.Info("starting server", "address", apiServer.Addr,
+		"environment", settings.environment)
+	err = apiServer.ListenAndServe()
+	logger.Error(err.Error())
+	os.Exit(1)
+}
+
+func openDB(settings serverConfig) (*sql.DB, error) {
+	// open a connection pool
+	db, err := sql.Open("postgres", settings.db.dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	// create a context with a 5-second timeout for the ping operation
+	ctx, cancel := context.WithTimeout(context.Background(),
+		5*time.Second)
+	defer cancel()
+	// ping the database to check if it's alive
+	err = db.PingContext(ctx)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	// return the connection pool (sql.DB)
+	return db, nil
+
+}
