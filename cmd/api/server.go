@@ -32,6 +32,9 @@ func (a *applicationDependencies) serve() error {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // signal occurred
 		s := <-quit                                          // blocks until a signal is received
 
+		// print newline to ensure the shutdown message appears on a new line
+		fmt.Println()
+
 		// message about shutdown in process
 		a.logger.Info("shutting down server", "signal", s.String())
 

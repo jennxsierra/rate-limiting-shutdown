@@ -87,3 +87,17 @@ func (a *applicationDependencies) rateLimit(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// logs HTTP requests with the request method, URL path, and the time it took to process the request
+func (a *applicationDependencies) loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		duration := time.Since(start)
+		a.logger.Info("request received",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"duration", fmt.Sprintf("%.2fms", float64(duration.Microseconds())/1000.0),
+		)
+	})
+}
