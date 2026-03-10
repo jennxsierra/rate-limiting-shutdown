@@ -20,10 +20,13 @@ func (a *applicationDependencies) routes() http.Handler {
 	// setup routes
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", a.healthcheckHandler)
 
+	// Demo route for graceful shutdown
+	router.HandlerFunc(http.MethodGet, "/v1/slow", a.slowPatientHandler)
+
 	// Patient routes
 	router.HandlerFunc(http.MethodGet, "/v1/patients", a.listPatientsHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/patients/:patient_no", a.showPatientHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/patients", a.createPatientHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/patients/:patient_no", a.showPatientHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/patients/:patient_no", a.updatePatientHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/patients/:patient_no", a.updatePatientHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/patients/:patient_no", a.deletePatientHandler)

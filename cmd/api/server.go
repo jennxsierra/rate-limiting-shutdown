@@ -18,7 +18,7 @@ func (a *applicationDependencies) serve() error {
 		Handler:      a.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 30 * time.Second, // increased for slow demo endpoint
 		ErrorLog:     slog.NewLogLogger(a.logger.Handler(), slog.LevelError),
 	}
 

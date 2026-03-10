@@ -5,7 +5,6 @@ include .envrc
 # DEVELOPMENT
 # ==================================================================================== #
 
-
 ## run/api: Start the API server
 .PHONY: run/api
 run/api:
@@ -15,6 +14,18 @@ run/api:
 .PHONY: run/api-no-limit
 run/api-no-limit:
 	go run ./cmd/api -db-dsn='$(MEDICAL_DB_DSN)' -limiter-enabled=false
+
+# ==================================================================================== #
+# DEMO
+# ==================================================================================== #
+
+## demo/shutdown-request: Send slow request for graceful shutdown demo
+.PHONY: demo/shutdown-request
+demo/shutdown-request:
+	@echo "Sending slow request (10 second delay)..."
+	@curl -i http://localhost:4000/v1/slow
+	@echo ""
+	@echo "Request completed successfully!"
 
 # ==================================================================================== #
 # DATABASE

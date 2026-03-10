@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jennxsierra/rate-limiting-shutdown/internal/data"
 	"github.com/jennxsierra/rate-limiting-shutdown/internal/validator"
@@ -227,4 +228,32 @@ func (a *applicationDependencies) deletePatientHandler(w http.ResponseWriter, r 
 		return
 	}
 	a.writeJSON(w, http.StatusOK, envelope{"message": "patient successfully deleted"}, nil)
+}
+
+// GET /v1/slow -- simulates slow database query for graceful shutdown demo
+func (a *applicationDependencies) slowPatientHandler(w http.ResponseWriter, r *http.Request) {
+	a.logger.Info("simulating 10 second database query")
+
+	// Simulate a slow database operation
+	time.Sleep(10 * time.Second)
+
+	patients, metadata, err := a.models.Patient.GetAll("", "", data.Filters{
+		Page:         1,
+		PageSize:     10,
+		Sort:         "patient_id",
+		SortSafeList: []string{"patient_id"},
+	})
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = a.writeJSON(w, http.StatusOK, envelope{
+		"patients":  patients,
+		"@metadata": metadata,
+		"message":   "This was a slow request (10s delay) to demonstrate graceful shutdown",
+	}, nil)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+	}
 }
