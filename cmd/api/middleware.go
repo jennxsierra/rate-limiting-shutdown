@@ -53,32 +53,37 @@ func (a *applicationDependencies) rateLimit(next http.Handler) http.Handler {
 	}()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// get the IP address
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			a.serverErrorResponse(w, r, err)
-			return
+		// conditionally apply the rate limiter if enabled in the config
+		if a.config.limiter.enabled {
+			// get the IP address
+			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				a.serverErrorResponse(w, r, err)
+				return
+			}
+
+			mu.Lock() // exclusive access to the map
+
+			// check if ip address already in map, if not add it
+			_, found := clients[ip]
+			if !found {
+				clients[ip] = &client{limiter: rate.NewLimiter(
+					rate.Limit(a.config.limiter.rps),
+					a.config.limiter.burst)}
+			}
+
+			// Update the last seen for the client
+			clients[ip].lastSeen = time.Now()
+
+			// Check the rate limit status
+			if !clients[ip].limiter.Allow() {
+				mu.Unlock() // no longer need exclusive access to the map
+				a.rateLimitExceededResponse(w, r)
+				return
+			}
+
+			mu.Unlock() // others are free to get exclusive access to the map
 		}
-
-		mu.Lock() // exclusive access to the map
-
-		// check if ip address already in map, if not add it
-		_, found := clients[ip]
-		if !found {
-			clients[ip] = &client{limiter: rate.NewLimiter(2, 5)}
-		}
-
-		// Update the last seen for the client
-		clients[ip].lastSeen = time.Now()
-
-		// Check the rate limit status
-		if !clients[ip].limiter.Allow() {
-			mu.Unlock() // no longer need exclusive access to the map
-			a.rateLimitExceededResponse(w, r)
-			return
-		}
-
-		mu.Unlock() // others are free to get exclusive access to the map
 		next.ServeHTTP(w, r)
 	})
 }
